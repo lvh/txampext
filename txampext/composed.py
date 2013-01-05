@@ -10,8 +10,6 @@ class ComposedLocator(object):
     """
     A responder locator that consists of other locators.
     """
-    interface.implements(amp.IResponderLocator)
-
     class __metaclass__(type):
         def __new__(meta, name, bases, attrs):
             """
