@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 setup(name='txampext',
-      version='20130105',
+      version='20130113',
       description="Extensions to Twisted's AMP implementation",
       url='https://github.com/lvh/txampext',
 
