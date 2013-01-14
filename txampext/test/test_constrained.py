@@ -36,12 +36,14 @@ class ConstrainedTests(unittest.TestCase):
         self._testConstrained(c, [2, 4], [0, 1, -1])
 
 
+
 def _isPositive(v):
     return v > 0
 
 
 def _isEven(v):
     return v % 2 == 0
+
 
 
 class ConstraintTests(unittest.TestCase):
