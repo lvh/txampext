@@ -6,30 +6,53 @@ from twisted.trial import unittest
 from txampext import composed
 
 
-class ComposedCommandLocatorTests(unittest.TestCase):
+nop = lambda self: None  # pragma: no cover
+
+
+class FirstLocator(amp.SimpleStringLocator):
+    amp_A = nop
+
+
+
+class SecondLocator(amp.SimpleStringLocator):
+    amp_B = nop
+
+
+
+class ComposedLocatorTests(unittest.TestCase):
     """
-    Tests for a composing responder locator.
+    Tests for a locator consisting of other locators.
+    """
+    def test_locateResponder(self):
+        locator = composed.ComposedLocator([FirstLocator(), SecondLocator()])
+        locate = locator.locateResponder
+
+        self.assertEqual(locate("a").im_func, nop)
+        self.assertEqual(locate("b").im_func, nop)
+        self.assertEqual(locate("c"), None)
+
+
+
+class DeclarativeComposedLocatorTests(unittest.TestCase):
+    """
+    Tests for the declarative composing responder locator.
     """
     def test_locateResponder(self):
         """
         Creates a composed locator, adds compnents to it, and then tries to
         locate responders on it.
         """
-        class ComposedLocator(composed.ComposedLocator):
+        class Locator(composed.DeclarativeComposedLocator):
             pass
 
-        nop = lambda self: None  # pragma: no cover
+        def addAndVerify(responderClass):
+            componentReturnValue = Locator.component(responderClass)
+            self.assertIdentical(responderClass, componentReturnValue)
 
-        @ComposedLocator.component
-        class FirstResponder(amp.SimpleStringLocator):
-            amp_A = nop
+        addAndVerify(FirstLocator)
+        addAndVerify(SecondLocator)
 
-        @ComposedLocator.component
-        class SecondResponder(amp.SimpleStringLocator):
-            amp_B = nop
-
-
-        locate = ComposedLocator().locateResponder
+        locate = Locator().locateResponder
         self.assertEqual(locate("a").im_func, nop)
         self.assertEqual(locate("b").im_func, nop)
         self.assertEqual(locate("c"), None)
@@ -39,14 +62,14 @@ class ComposedCommandLocatorTests(unittest.TestCase):
         """
         Tests that the composing locator is available to component locators.
         """
-        class ComposedLocator(composed.ComposedLocator):
+        class Locator(composed.DeclarativeComposedLocator):
             pass
 
-        @ComposedLocator.component
+        @Locator.component
         class ComponentLocator(amp.SimpleStringLocator):
             pass
 
-        locator = ComposedLocator()
+        locator = Locator()
         self.assertIdentical(locator._locators[0]._composer, locator)
 
 
@@ -54,10 +77,10 @@ class ComposedCommandLocatorTests(unittest.TestCase):
         """
         Tests that composed command locators don't affect each other.
         """
-        class L1(composed.ComposedLocator):
+        class L1(composed.DeclarativeComposedLocator):
             pass
 
-        class L2(composed.ComposedLocator):
+        class L2(composed.DeclarativeComposedLocator):
             pass
 
         @L1.component
