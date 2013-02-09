@@ -10,5 +10,13 @@ def typeFor(attr, **kwargs):
 
 _typeMap = {
     attributes.text: amp.Unicode,
-    attributes.bytes: amp.String
+    attributes.bytes: amp.String,
+    attributes.integer: amp.Integer,
+    attributes.money: amp.Decimal,
+    attributes.ieee754_double: amp.Float,
+    attributes.timestamp: amp.DateTime
 }
+
+for precision in range(1, 11):
+    decimalType = getattr(attributes, "point{}decimal".format(precision))
+    _typeMap[decimalType] = amp.Decimal
