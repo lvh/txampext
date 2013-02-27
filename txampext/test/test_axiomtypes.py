@@ -1,7 +1,7 @@
 try:
     from txampext import axiomtypes; axiomtypes
     from axiom import attributes
-except ImportError:
+except ImportError:  # pragma: no cover
     axiomtypes = None
 
 from twisted.protocols import amp
