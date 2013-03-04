@@ -14,7 +14,8 @@ _typeMap = {
     attributes.integer: amp.Integer,
     attributes.money: amp.Decimal,
     attributes.ieee754_double: amp.Float,
-    attributes.timestamp: amp.DateTime
+    attributes.timestamp: amp.DateTime,
+    attributes.boolean: amp.Boolean
 }
 
 for precision in range(1, 11):

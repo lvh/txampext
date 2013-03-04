@@ -48,3 +48,7 @@ class TypeForTests(unittest.TestCase):
 
     def test_timestamp(self):
         self._test_typeFor(attributes.timestamp(), amp.DateTime)
+
+
+    def test_boolean(self):
+        self._test_typeFor(attributes.boolean(), amp.Boolean)
