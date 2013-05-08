@@ -7,6 +7,7 @@ differs from that code in two ways. Firstly, it always defers to the
 ``Command``'s ``{parse|make}{Arguments|Response}`` class methods, instead of
 using internals of Twisted's AMP implementation. Secondly, it allows you to
 set a protocol for Arguments that require it, instead of hardcoding ``None``.
+Thirdly, it allows you to test for registered AMP errors.
 """
 class CommandTestMixin(object):
     """
@@ -44,6 +45,19 @@ class CommandTestMixin(object):
     Example response, in serialized form.
     """
 
+    errors = {}
+    """
+    Possible errors. A mapping of exception classes to descriptions.
+    """
+
+
+    fatalErrors = {}
+    """
+    Possible errors that will terminate the connection. A mapping of
+    exception classes to descriptions.
+    """
+
+
     def test_makeResponse(self):
         """
         ``self.responseObjects`` serializes to ``self.responseStrings``.
@@ -80,6 +94,24 @@ class CommandTestMixin(object):
         self.assertEqual(objects, self.argumentObjects)
 
 
+    def test_fatalErrors(self):
+        """
+        Tests that all expected fatal errors are registered.
+        """
+        for cls, expectedDescription in self.fatalErrors:
+            description = self.command.fatalErrors.get(cls)
+            self.assertEqual(description, expectedDescription)
+
+
+    def test_errors(self):
+        """
+        Tests that all expected non-fatal errors are registered.
+        """
+        for cls, expectedDescription in self.errors:
+            description = self.command.errors.get(cls)
+            self.assertEqual(description, expectedDescription)
+
+
 
 def stringifyValues(objects):
     """
@@ -87,3 +119,10 @@ def stringifyValues(objects):
     to ``str``.
     """
     return dict((k, str(v)) for k, v in objects.items())
+
+
+
+
+
+
+
