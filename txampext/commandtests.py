@@ -98,7 +98,7 @@ class CommandTestMixin(object):
         """
         Tests that all expected fatal errors are registered.
         """
-        for cls, expectedDescription in self.fatalErrors:
+        for cls, expectedDescription in self.fatalErrors.iteritems():
             description = self.command.fatalErrors.get(cls)
             self.assertEqual(description, expectedDescription)
 
@@ -107,7 +107,7 @@ class CommandTestMixin(object):
         """
         Tests that all expected non-fatal errors are registered.
         """
-        for cls, expectedDescription in self.errors:
+        for cls, expectedDescription in self.errors.iteritems():
             description = self.command.errors.get(cls)
             self.assertEqual(description, expectedDescription)
 
@@ -119,10 +119,3 @@ def stringifyValues(objects):
     to ``str``.
     """
     return dict((k, str(v)) for k, v in objects.items())
-
-
-
-
-
-
-

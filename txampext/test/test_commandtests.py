@@ -19,10 +19,10 @@ class ProtoDumper(object):
 
 
 
-class Add(amp.Command):
+class Divide(amp.Command):
     """
-    Adds two numbers, and dumps the protocol in arguments and response
-    because of reasons.
+    Divides two numbers, and dumps the protocol in arguments and
+    response because of reasons.
     """
     arguments = [
         ("left", amp.Integer()),
@@ -33,17 +33,22 @@ class Add(amp.Command):
         ("result", amp.Integer()),
         ("proto", ProtoDumper())
     ]
+    errors = {ZeroDivisionError: "DIVIDE_BY_ZERO"}
+    fatalErrors = {MemoryError: "MEMORY_ERROR"}
+
 
 
 class CommandTestMixinTests(CommandTestMixin, unittest.TestCase):
     """
     Tests for the command testing mixin.
     """
-    command = Add
-    argumentObjects = {"left": 1, "right": 2}
+    command = Divide
+    argumentObjects = {"left": 2, "right": 2}
     argumentStrings = stringifyValues(argumentObjects)
-    responseObjects = {"result": 3}
+    responseObjects = {"result": 1}
     responseStrings = stringifyValues(responseObjects)
+    errors = {ZeroDivisionError: "DIVIDE_BY_ZERO"}
+    fatalErrors = {MemoryError: "MEMORY_ERROR"}
 
     def setUp(self):
         self.protocol = object()
