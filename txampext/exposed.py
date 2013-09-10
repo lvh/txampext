@@ -13,6 +13,9 @@ class ExposedBoxSender(object):
     def fromBox(self, name, strings, objects, proto):
         """
         Exposes the cooperating protocol's box sender.
+
+        This exposes ``proto``'s ``_exposedBoxSender`` attribute on
+        ``objects`` under ``name``.
         """
         objects[name] = proto._exposedBoxSender
 
@@ -27,4 +30,29 @@ class ExposedBoxSender(object):
 
 
 
+@interface.implementer(amp.IArgumentType)
+class ExposedProtocol(object):
+    """
+    AMP argument that exposes the protocol instance to a responder function.
+    """
+    def fromBox(self, name, strings, objects, proto):
+        """
+        Exposes the protocol.
+
+        This exposes ``proto`` on ``objects`` under ``name``.
+        """
+        objects[name] = proto
+
+
+    def toBox(self, name, strings, objects, proto):
+        """
+        A no-op.
+
+        The exposed protocol can't be serialized back to the other
+        side, so this method does nothing.
+        """
+
+
+
 EXPOSED_BOX_SENDER = "boxSender", ExposedBoxSender()
+EXPOSED_PROTOCOL = "protocol", ExposedProtocol()
