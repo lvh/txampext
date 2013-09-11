@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    exposed.rst
+   constraints.rst
 
 Indices and tables
 ==================
