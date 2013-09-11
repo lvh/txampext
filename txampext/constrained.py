@@ -1,7 +1,7 @@
 from twisted.protocols import amp
 
 
-class Constrained(amp.Argument):
+class ConstrainedArgument(amp.Argument):
     """
     An AMP argument, further constrained by a number of callables.
     """
@@ -37,7 +37,7 @@ class Constrained(amp.Argument):
 
 
 
-def inRange(values):
+def inSet(values):
     """
     Creates a constraint that checks a value is one of the provided values.
     """
@@ -46,7 +46,7 @@ def inRange(values):
     return constraint
 
 
-def notInRange(values):
+def notInSet(values):
     """
     Creates a constraint that checks a value is not one of the provided values.
     """

@@ -47,13 +47,13 @@ def _isEven(v):
 
 
 class ConstraintTests(unittest.TestCase):
-    def test_inRange(self):
-        c = constrained.inRange("ABC")
+    def test_inSet(self):
+        c = constrained.inSet("ABC")
         self.assertTrue(c("A"))
         self.assertFalse(c("1"))
 
 
-    def test_notInRange(self):
-        c = constrained.notInRange("ABC")
+    def test_notInSet(self):
+        c = constrained.notInSet("ABC")
         self.assertTrue(c("1"))
         self.assertFalse(c("A"))
