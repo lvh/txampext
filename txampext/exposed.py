@@ -2,8 +2,24 @@ from twisted.protocols import amp
 from zope import interface
 
 
+class _ExposingArgument(object):
+    """
+    Superclass for exposing arguments.
+    """
+    optional = True
+
+    def toBox(self, name, strings, objects, proto):
+        """A no-op.
+
+        The exposed value is specific to the local connection. It
+        can't be serialized back to the other side, so this method
+        does nothing.
+
+        """
+
+
 @interface.implementer(amp.IArgumentType)
-class ExposedBoxSender(object):
+class ExposedBoxSender(_ExposingArgument):
     """
     AMP argument that exposes the box sender to a responder function.
 
@@ -20,18 +36,9 @@ class ExposedBoxSender(object):
         objects[name] = proto._exposedBoxSender
 
 
-    def toBox(self, name, strings, objects, proto):
-        """
-        A no-op.
-
-        The exposed box sender can't be serialized back to the other side, so
-        this method does nothing.
-        """
-
-
 
 @interface.implementer(amp.IArgumentType)
-class ExposedProtocol(object):
+class ExposedProtocol(_ExposingArgument):
     """
     AMP argument that exposes the protocol instance to a responder function.
     """
@@ -42,15 +49,6 @@ class ExposedProtocol(object):
         This exposes ``proto`` on ``objects`` under ``name``.
         """
         objects[name] = proto
-
-
-    def toBox(self, name, strings, objects, proto):
-        """
-        A no-op.
-
-        The exposed protocol can't be serialized back to the other
-        side, so this method does nothing.
-        """
 
 
 
