@@ -13,6 +13,7 @@ Contents:
 
    exposed.rst
    constraints.rst
+   multiplexing.rst
 
 Indices and tables
 ==================
