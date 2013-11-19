@@ -9,6 +9,28 @@ using internals of Twisted's AMP implementation. Secondly, it allows you to
 set a protocol for Arguments that require it, instead of hardcoding ``None``.
 Thirdly, it allows you to test for registered AMP errors.
 """
+from functools import wraps
+
+
+def _requiredAttributes(*attrs):
+    if not attrs:
+        raise ValueError("At least one attribute name must be specified")
+
+    def decorator(f):
+        @wraps(f)
+        def decorated(self, _attrs=attrs, *args, **kwargs):
+            unset = [attr for attr in _attrs if
+                     getattr(CommandTestMixin, attr) is getattr(self, attr)]
+            if unset:
+                attrs = " and ".join(n + " attribute" for n in unset)
+                raise ValueError("The {0} must be set.".format(attrs.strip()))
+
+            return f(self, *args, **kwargs)
+        return decorated
+    return decorator
+
+
+
 class CommandTestMixin(object):
     """
     Mixin for test cases for serialization and parsing of AMP Commands.
@@ -71,6 +93,7 @@ class CommandTestMixin(object):
     """
 
 
+    @_requiredAttributes("command", "responseObjects", "responseStrings")
     def test_makeResponse(self):
         """
         ``self.responseObjects`` serializes to ``self.responseStrings``.
@@ -80,6 +103,7 @@ class CommandTestMixin(object):
         self.assertEqual(strings, self.responseStrings)
 
 
+    @_requiredAttributes("command", "responseObjects", "responseStrings")
     def test_parseResponse(self):
         """
         ``self.responseStrings`` parses to ``self.responseObjects.``
@@ -89,6 +113,7 @@ class CommandTestMixin(object):
         self.assertEqual(objects, self.responseObjects)
 
 
+    @_requiredAttributes("command", "argumentObjects", "argumentStrings")
     def test_makeArguments(self):
         """
         ``self.argumentObjects`` serializes to ``self.argumentStrings``.
@@ -98,6 +123,7 @@ class CommandTestMixin(object):
         self.assertEqual(strings, self.argumentStrings)
 
 
+    @_requiredAttributes("command", "argumentObjects", "argumentStrings")
     def test_parseArguments(self):
         """
         ``self.argumentStrings`` parses to ``self.argumentObjects.``
@@ -107,6 +133,7 @@ class CommandTestMixin(object):
         self.assertEqual(objects, self.argumentObjects)
 
 
+    @_requiredAttributes("command", "fatalErrors")
     def test_fatalErrors(self):
         """
         Tests that all expected fatal errors are registered.
@@ -116,6 +143,7 @@ class CommandTestMixin(object):
             self.assertEqual(description, expectedDescription)
 
 
+    @_requiredAttributes("command", "errors")
     def test_errors(self):
         """
         Tests that all expected non-fatal errors are registered.
