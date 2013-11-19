@@ -100,7 +100,7 @@ class CommandTestMixin(object):
 
     def test_parseArguments(self):
         """
-        ``self.responseStrings`` parses to ``self.responseObjects.``
+        ``self.argumentStrings`` parses to ``self.argumentObjects.``
         """
         parse = self.command.parseArguments
         objects = parse(self.argumentStrings, self.protocol)
