@@ -28,33 +28,46 @@ class CommandTestMixin(object):
     argumentObjects = {}
     """
     Example arguments, in unserialized form.
+
+    This should be ``dict`` with ``bytes`` keys and parsed objects
+    (``int``s, ``unicode``s...).
     """
 
     responseObjects = {}
     """
     Example response, in unserialized form.
+
+    This should be ``dict`` with ``bytes`` keys and parsed objects
+    (``int``s, ``unicode``s...).
     """
 
     argumentStrings = {}
     """
     Example argument, in serialized form.
+
+    This should be ``dict`` with ``bytes`` keys and ``bytes`` values
+    representing serialized objects.
     """
 
     responseStrings = {}
     """
     Example response, in serialized form.
+
+    This should be ``dict`` with ``bytes`` keys and ``bytes`` values
+    representing serialized objects.
     """
 
     errors = {}
     """
-    Possible errors. A mapping of exception classes to descriptions.
+    Possible errors. This should be a mapping of exception classes to
+    descriptions (``bytes``).
     """
 
 
     fatalErrors = {}
     """
     Possible errors that will terminate the connection. A mapping of
-    exception classes to descriptions.
+    exception classes to descriptions (``bytes``).
     """
 
 
