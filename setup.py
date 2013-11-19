@@ -12,7 +12,7 @@ setup(name='txampext',
       url='https://github.com/lvh/txampext',
 
       author='Laurens Van Houtven',
-      author_email='_@lvh.cc',
+      author_email='_@lvh.io',
 
       packages=find_packages(),
 
