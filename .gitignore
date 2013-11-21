@@ -12,6 +12,7 @@ _trial_temp
 .tox
 
 # Build junk
+build/*
 .build/*
 MANIFEST
 dist/*
