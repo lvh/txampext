@@ -21,6 +21,12 @@ Features:
   also the protocol. There's a hook you can override in case there's a
   different way to get to the protocol class from the responder
   locator. The examples do the latter.
+- The documentation now has an example that listens locally for TCP
+  connections and then forwards them over an AMP connection using a
+  multiplexed AMP connection.
+
+For the next release, I hope to clean up the example, and add it to
+the `multiplexing` module.
 
 ## 0.0.5
 
