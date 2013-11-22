@@ -14,6 +14,14 @@ Bugfixes:
   to be the protocol) due to an implementation detail of AMP in
   Twisted.
 
+Features:
+
+- A new iteration of the protocol multiplexing logic. Assumes that
+  you're using ``AMP`` subclasses, so that the responder locator is
+  also the protocol. There's a hook you can override in case there's a
+  different way to get to the protocol class from the responder
+  locator. The examples do the latter.
+
 ## 0.0.5
 
 Features:

@@ -3,7 +3,7 @@ Multiplexed stream connections over AMP.
 """
 from twisted.internet import interfaces
 from twisted.protocols import amp
-from txampext import errors, exposed
+from txampext import errors
 from uuid import uuid4
 from zope import interface
 
@@ -35,8 +35,7 @@ class Connect(amp.Command):
     Creates a connection to be multiplexed over this AMP connection.
     """
     arguments = [
-        ("factory", amp.String()),
-        ("remote", exposed.ExposedProtocol())
+        ("factory", amp.String())
     ]
     response = [
         ("connection", amp.String())
@@ -70,7 +69,7 @@ class Disconnect(amp.Command):
 
     """
     arguments = [
-        ("connection", amp.String()),
+        ("connection", amp.String())
     ]
     response = []
     errors = dict([NoSuchConnection.asAMP()])
@@ -117,8 +116,19 @@ class MultiplexingCommandLocator(amp.CommandLocator):
         return factory
 
 
+    def getProtocol(self):
+        """Gets the AMP protocol.
+
+        By default, this assumes that this responder locator is also
+        the protocol. If there is some other relation between the two,
+        override this method.
+
+        """
+        return self
+
+
     @Connect.responder
-    def connect(self, factory, remote):
+    def connect(self, factory):
         """Attempts to connect using a given factory.
 
         This will find the requested factory and use it to build a
@@ -133,12 +143,13 @@ class MultiplexingCommandLocator(amp.CommandLocator):
         except KeyError:
             raise NoSuchFactory()
 
+        remote = self.getProtocol()
         addr = remote.transport.getPeer()
         proto = factory.buildProtocol(addr)
         if proto is None:
             raise ConnectionRefused()
 
-        identifier = uuid4().hex()
+        identifier = uuid4().hex
         transport = MultiplexedTransport(identifier, remote)
         proto.makeConnection(transport)
 
@@ -147,12 +158,12 @@ class MultiplexingCommandLocator(amp.CommandLocator):
 
 
     @Transmit.responder
-    def receiveData(self, protocol, data):
+    def receiveData(self, connection, data):
         """
         Receives some data for the given protocol.
         """
         try:
-            protocol = self._protocols[protocol]
+            protocol = self._protocols[connection]
         except KeyError:
             raise NoSuchConnection()
 
@@ -188,7 +199,7 @@ class MultiplexedTransport(object):
         ``callRemote``, with the connection's identifier.
 
         """
-        self.remote.callRemote(command, transport=self.identifier, **kwargs)
+        self.remote.callRemote(command, connection=self.identifier, **kwargs)
 
 
     def write(self, data):

@@ -77,7 +77,9 @@ class Protocol(protocol.Protocol):
         """Actually sends data over the wire.
 
         """
-        self._callRemote(multiplexing.Transmit, data=data)
+        self._callRemote(multiplexing.Transmit,
+                         connection=self.connection,
+                         data=data)
 
 
 
