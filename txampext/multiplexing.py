@@ -187,6 +187,8 @@ class MultiplexedTransport(object):
     """
     A local transport that makes calls over the AMP connection.
     """
+    disconnecting = False  # Due to a bug in LineReceiver: tm.tl/6606
+
     def __init__(self, identifier, remote):
         self.identifier = identifier
         self.remote = remote
