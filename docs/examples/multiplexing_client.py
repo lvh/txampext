@@ -10,8 +10,8 @@ except ImportError:
     from StringIO import StringIO
 
 
-class Protocol(protocol.Protocol):
-    """Proxies a local connection over AMP.
+class ProxyingProtocol(protocol.Protocol):
+    """Proxies local connection over AMP.
 
     """
     def __init__(self):
@@ -84,7 +84,7 @@ class Protocol(protocol.Protocol):
 
 
 class Factory(protocol.ServerFactory):
-    protocol = Protocol
+    protocol = ProxyingProtocol
 
     def __init__(self, remote):
         self.remote = remote
