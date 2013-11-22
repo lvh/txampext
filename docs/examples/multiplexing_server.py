@@ -11,19 +11,33 @@ class HelloResource(resource.Resource):
         return "Hello from the web server!"
 
 
+
 webFactory = server.Site(HelloResource())
-locator = multiplexing.MultiplexingCommandLocator()
-locator.addFactory("hello", webFactory)
+
+
+
+class MultiplexingCommandLocator(multiplexing.MultiplexingCommandLocator):
+    def getProtocol(self):
+        return self.proto
+
 
 
 class Factory(protocol.ServerFactory):
     def buildProtocol(self, addr):
-        return amp.AMP(locator=locator)
+        locator = MultiplexingCommandLocator()
+        locator.addFactory("hello", webFactory)
+
+        proto = amp.AMP(locator=locator)
+        locator.proto = proto
+
+        return proto
+
 
 
 ampEndpoint = endpoints.TCP4ServerEndpoint(reactor, 8884)
 
+
+
 if __name__ == "__main__":
-    import pudb; pudb.set_trace()
     ampEndpoint.listen(Factory())
     reactor.run()
