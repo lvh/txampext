@@ -36,17 +36,22 @@ class ProxyingProtocol(protocol.Protocol):
         sent.
 
         """
-        log.msg("Local connection made, creating AMP connection...")
+        log.msg("Creating multiplexed AMP connection...")
         d = self._callRemote(multiplexing.Connect, factory="hello")
         d.addCallback(self._multiplexedConnectionMade)
 
 
     def _multiplexedConnectionMade(self, response):
-        """Stores a reference to the connection and sends currently buffered
-        data. Gets rid of the buffer afterwards.
+        """Stores a reference to the connection, registers this protocol on
+        the factory as one related to a multiplexed AMP connection,
+        and sends currently buffered data. Gets rid of the buffer
+        afterwards.
 
         """
+        log.msg("Multiplexed AMP connection made!")
+
         self.connection = response["connection"]
+        self.factory.protocols[self.connection] = self
 
         bufferedData, self._buffer = self._buffer.getvalue(), None
         if bufferedData:
@@ -57,13 +62,13 @@ class ProxyingProtocol(protocol.Protocol):
 
 
     def dataReceived(self, data):
-        """Receives some data.
+        """Received some data from the local side.
 
         If we have set up the multiplexed connection, sends the data
         over the multiplexed connection. Otherwise, buffers.
 
         """
-        log.msg("{} bytes of data received!".format(len(data)))
+        log.msg("{} bytes of data received locally".format(len(data)))
         if self.connection is None:
             # we haven't finished connecting yet
             log.msg("Connection not made yet, buffering...")
@@ -82,31 +87,87 @@ class ProxyingProtocol(protocol.Protocol):
                          data=data)
 
 
+    def connectionLost(self, reason):
+        """If we already have an AMP connection registered on the factory,
+        get rid of it.
 
-class Factory(protocol.ServerFactory):
+        """
+        if self.connection is not None:
+            del self.factory.protocols[self.connection]
+
+
+
+class ProxyingFactory(protocol.ServerFactory):
+    """A local listening factory that will proxy bytes to a remote server
+    using an AMP multiplexed connection.
+
+    """
     protocol = ProxyingProtocol
 
     def __init__(self, remote):
         self.remote = remote
+        remote.localFactory = self
+        self.protocols = {}
 
 
 
-AMPFactory = protocol.ClientFactory.forProtocol(amp.AMP)
+class ProxyingAMPProtocol(amp.AMP):
+    localFactory = None
+
+    def getLocalProtocol(self, connectionIdentifier):
+        """
+        Attempts to get a local protocol by connection identifier.
+        """
+        if self.localFactory is None:
+            raise multiplexing.NoSuchConnection()
+
+        try:
+            return self.localFactory.protocols[connectionIdentifier]
+        except KeyError:
+            raise multiplexing.NoSuchConnection()
+
+
+    @multiplexing.Transmit.responder
+    def remoteDataReceived(self, connection, data):
+        """Some data was received from the remote end. Find the matching
+        protocol and replay it.
+
+        """
+        proto = self.getLocalProtocol(connection)
+        proto.transport.write(data)
+        return {}
+
+
+    @multiplexing.Disconnect.responder
+    def disconnect(self, connection):
+        """
+        The other side has asked us to disconnect.
+        """
+        proto = self.getLocalProtocol(connection)
+        proto.transport.loseConnection()
+        return {}
+
+
+
 ampEndpoint = endpoints.TCP4ClientEndpoint(reactor, "localhost", 8884)
 listeningEndpoint = endpoints.TCP4ServerEndpoint(reactor, 8885)
 
 
+
 def _connected(client):
     """
-    Connected to AMP server, start listening.
+    Connected to AMP server, start listening locally, and give the AMP
+    client a reference to the local listening factory.
     """
     log.msg("Connected to AMP server, starting to listen locally...")
-    factory = Factory(client)
-    return listeningEndpoint.listen(factory)
+    localFactory = ProxyingFactory(client)
+    return listeningEndpoint.listen(localFactory)
+
 
 
 if __name__ == "__main__":
     log.startLogging(stdout)
     log.msg("Connecting to the AMP server...")
-    ampEndpoint.connect(AMPFactory).addCallback(_connected)
+    d = endpoints.connectProtocol(ampEndpoint, ProxyingAMPProtocol())
+    d.addCallback(_connected)
     reactor.run()
