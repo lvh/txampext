@@ -22,11 +22,17 @@ class _ExposedTests(object):
         """
         Tests that ``toBox`` doesn't modify its inputs.
         """
-        strings, objects, proto = {}, {}, FakeProtocol()
+        strings, objects, proto = {}, {}, FakeResponderLocator()
         self.argument.toBox(self.argumentKey, strings, objects, proto)
 
         self.assertEqual(strings, {})
         self.assertEqual(objects, {})
+
+
+    def _fromBox(self):
+        strings, objects, locator = {}, {}, FakeResponderLocator()
+        self.argument.fromBox(self.argumentKey, strings, objects, locator)
+        return strings, objects, locator
 
 
 
@@ -41,32 +47,29 @@ class ExposedBoxSenderTests(_ExposedTests, unittest.TestCase):
         Tests that ``fromBox`` exposes the box sender from the protocol
         through the ``objects`` dictionary.
         """
-        strings, objects, proto = {}, {}, FakeProtocol()
-        self.argument.fromBox("boxSender", strings, objects, proto)
-
-        self.assertEqual(objects, {"boxSender": proto._exposedBoxSender})
+        strings, objects, locator = self._fromBox()
+        self.assertEqual(objects, {"boxSender": locator._exposedBoxSender})
         self.assertEqual(strings, {})
 
 
-class ExposedProtocolTests(unittest.TestCase):
+
+class ExposedResponderLocatorTests(_ExposedTests, unittest.TestCase):
     def setUp(self):
-        self.argument = exposed.ExposedProtocol()
-        self.argumentKey = "protocol"
+        self.argument = exposed.ExposedResponderLocator()
+        self.argumentKey = "locator"
 
 
     def test_fromBox(self):
         """
-        Tests that ``fromBox`` exposes the protocol through the ``objects``
+        Tests that ``fromBox`` exposes the responder locator through the ``objects``
         dictionary.
         """
-        strings, objects, proto = {}, {}, FakeProtocol()
-        self.argument.fromBox("protocol", strings, objects, proto)
-
-        self.assertEqual(objects, {"protocol": proto})
+        strings, objects, locator = self._fromBox()
+        self.assertEqual(objects, {self.argumentKey: locator})
         self.assertEqual(strings, {})
 
 
 
-class FakeProtocol(object):
+class FakeResponderLocator(object):
     def __init__(self):
         self._exposedBoxSender = object()

@@ -5,6 +5,15 @@ implementation of [AMP](http://amp-protocol.net/).
 
 # What's new
 
+## 0.0.6 (WIP)
+
+Bugfixes:
+
+- ExposedProtocol has been renamed to ExposedResponderLocator, because
+  it's actually always the responder locator (which sometimes happens
+  to be the protocol) due to an implementation detail of AMP in
+  Twisted.
+
 ## 0.0.5
 
 Features:
