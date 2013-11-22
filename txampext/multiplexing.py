@@ -61,7 +61,7 @@ class Transmit(amp.Command):
 
 
 class Disconnect(amp.Command):
-    """Disconnect the multiplexed connection..
+    """Disconnect the multiplexed connection.
 
     Further attempts to use the connection will fail. This is a
     symmetric disconnect: the transport will also cease to work in the
