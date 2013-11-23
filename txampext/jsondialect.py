@@ -9,26 +9,12 @@ from twisted.protocols import amp, basic
 from txampext import exposed
 
 
-def _objectHook(obj):
-    """
-    An object hook for type hinting.
-    """
-    try:
-        for name, newType in obj.pop("__type__").iteritems():
-            assert type(newType) is list
-            assert newType[0] == "str"
-            obj[name] = [s.encode("utf-8") for s in obj[name]]
-    except KeyError:
-        pass
-
-    return obj
-
-
 def _default(obj):
     try:
         return list(obj)
     except TypeError:
         return obj.isoformat()
+
 
 
 class JSONAMPDialectReceiver(basic.NetstringReceiver):
@@ -40,7 +26,7 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
 
 
     def stringReceived(self, string):
-        request = loads(string, object_hook=_objectHook)
+        request = loads(string)
 
         identifier = request.pop("_ask")
         # DISGUSTING IMPLEMENTATION DETAIL EXPLOITING HACK
