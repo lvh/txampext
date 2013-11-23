@@ -26,17 +26,69 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
 
 
     def stringReceived(self, string):
+        """Handle a JSON AMP dialect request.
+
+        First, the JSON is parsed. Then, all JSON dialect specific
+        values in the request are turned into the correct objects.
+        Then, finds the correct responder function, calls it, and
+        serializes the result (or error).
+
+        """
         request = loads(string)
 
         identifier = request.pop("_ask")
-
         commandName = request.pop("_command")
+        command, responder = self._getCommandAndResponder(commandName)
+
+        self._parseRequestValues(request, command)
+
+        d = defer.maybeDeferred(responder, **request)
+
+        def _addIdentifier(response):
+            """Return the response with an ``_answer`` key.
+
+            """
+            response["_answer"] = identifier
+            return response
+
+        def _serializeFailure(failure):
+            """
+            If the failure is serializable by this AMP command, serialize it.
+            """
+            key = failure.trap(*command.allErrors)
+            response = {
+                "_error_code": command.allErrors[key],
+                "_error_description": str(failure.value),
+                "_error": identifier
+            }
+            return response
+
+        d.addCallbacks(_addIdentifier, _serializeFailure)
+
+        @d.addCallback
+        def writeResponse(response):
+            encoded = dumps(response, default=_default)
+            self.transport.write(encoded)
+
+
+    def _getCommandAndResponder(self, commandName):
+        """Gets the command class and matching responder function for the
+        given command name.
+
+        """
         # DISGUSTING IMPLEMENTATION DETAIL EXPLOITING HACK
         locator = self._amp.boxReceiver.locator
         responder = locator.locateResponder(commandName)
         responderFunction = responder.func_closure[1].cell_contents
         command = responder.func_closure[2].cell_contents
+        return command, responderFunction
 
+
+    def _parseRequestValues(self, request, command):
+        """
+        Parses all the values in the request that are in a form specifi to
+        the JSON AMP dialect.
+        """
         for key, ampType in command.arguments:
             ampClass = ampType.__class__
 
@@ -47,34 +99,6 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
             transformer = _ampTypeMap.get(ampClass)
             if transformer is not None:
                 request[key] = transformer(request[key])
-
-        d = defer.maybeDeferred(responderFunction, **request)
-
-        def _wrapAnswer(response):
-            """
-            Return the response with the _answer key added.
-            """
-            response["_answer"] = identifier
-            return response
-
-        def _report(failure):
-            """
-            Produce an AMP error dict.
-            """
-            key = failure.trap(*command.allErrors)
-            response = {
-                "_error_code": command.allErrors[key],
-                "_error_description": str(failure.value),
-                "_error": identifier
-            }
-            return response
-
-        d.addCallbacks(_wrapAnswer, _report)
-
-        @d.addCallback
-        def writeResponse(response):
-            encoded = dumps(response, default=_default)
-            self.transport.write(encoded)
 
 
     def connectionLost(self, reason):
