@@ -10,6 +10,7 @@ from txampext import exposed
 
 
 def _default(obj):
+    # TODO: Seriously? This? What the ugh.
     try:
         return list(obj)
     except TypeError:
