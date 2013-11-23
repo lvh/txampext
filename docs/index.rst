@@ -14,6 +14,7 @@ Contents:
    exposed.rst
    constraints.rst
    multiplexing.rst
+   jsondialect.rst
 
 Indices and tables
 ==================
