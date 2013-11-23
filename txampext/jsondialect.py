@@ -41,34 +41,8 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
         command, responder = self._getCommandAndResponder(commandName)
 
         self._parseRequestValues(request, command)
-
-        d = defer.maybeDeferred(responder, **request)
-
-        def _addIdentifier(response):
-            """Return the response with an ``_answer`` key.
-
-            """
-            response["_answer"] = identifier
-            return response
-
-        def _serializeFailure(failure):
-            """
-            If the failure is serializable by this AMP command, serialize it.
-            """
-            key = failure.trap(*command.allErrors)
-            response = {
-                "_error_code": command.allErrors[key],
-                "_error_description": str(failure.value),
-                "_error": identifier
-            }
-            return response
-
-        d.addCallbacks(_addIdentifier, _serializeFailure)
-
-        @d.addCallback
-        def writeResponse(response):
-            encoded = dumps(response, default=_default)
-            self.transport.write(encoded)
+        d = self._runResponder(responder, request, command, identifier)
+        d.addCallback(self._writeResponse)
 
 
     def _getCommandAndResponder(self, commandName):
@@ -100,6 +74,45 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
             if transformer is not None:
                 value = request.get(key)
                 request[key] = transformer(value)
+
+
+    def _runResponder(self, responder, request, command, identifier):
+        """Run the responser function. If it succeeds, add the _answer key.
+        If it fails with an error known to the command, serialize the
+        error.
+
+        """
+        d = defer.maybeDeferred(responder, **request)
+
+        def _addIdentifier(response):
+            """Return the response with an ``_answer`` key.
+
+            """
+            response["_answer"] = identifier
+            return response
+
+        def _serializeFailure(failure):
+            """
+            If the failure is serializable by this AMP command, serialize it.
+            """
+            key = failure.trap(*command.allErrors)
+            response = {
+                "_error_code": command.allErrors[key],
+                "_error_description": str(failure.value),
+                "_error": identifier
+            }
+            return response
+
+        d.addCallbacks(_addIdentifier, _serializeFailure)
+        return d
+
+
+    def _writeResponse(self, response):
+        """
+        Serializes the response to JSON, and writes it to the transport.
+        """
+        encoded = dumps(response, default=_default)
+        self.transport.write(encoded)
 
 
     def connectionLost(self, reason):
