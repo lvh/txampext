@@ -21,8 +21,8 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
     """
     JSON AMP dialect speaking protocol.
     """
-    def __init__(self, amp):
-        self._amp = amp
+    def __init__(self, remote):
+        self._remote = remote
 
 
     def stringReceived(self, string):
@@ -77,7 +77,7 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
 
         """
         # DISGUSTING IMPLEMENTATION DETAIL EXPLOITING HACK
-        locator = self._amp.boxReceiver.locator
+        locator = self._remote.boxReceiver.locator
         responder = locator.locateResponder(commandName)
         responderFunction = responder.func_closure[1].cell_contents
         command = responder.func_closure[2].cell_contents
@@ -85,27 +85,28 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
 
 
     def _parseRequestValues(self, request, command):
-        """
-        Parses all the values in the request that are in a form specifi to
-        the JSON AMP dialect.
+        """Parses all the values in the request that are in a form specific
+        to the JSON AMP dialect.
+
         """
         for key, ampType in command.arguments:
             ampClass = ampType.__class__
 
             if ampClass is exposed.ExposedResponderLocator:
-                request[key] = self._amp
+                request[key] = self._remote
                 continue
 
             transformer = _ampTypeMap.get(ampClass)
             if transformer is not None:
-                request[key] = transformer(request[key])
+                value = request.get(key)
+                request[key] = transformer(value)
 
 
     def connectionLost(self, reason):
         """
         Tells the box receiver to stop receiving boxes.
         """
-        self._amp.boxReceiver.stopReceivingBoxes(reason)
+        self._remote.boxReceiver.stopReceivingBoxes(reason)
         return basic.NetstringReceiver.connectionLost(self, reason)
 
 
@@ -120,13 +121,16 @@ class JSONAMPDialectFactory(protocol.Factory):
     """
     A factory for JSON AMP dialects.
     """
-    def __init__(self, ampFactory):
-        self._ampFactory = ampFactory
+    def __init__(self, factory):
+        """
+        Initializes a JSON AMP dialect factory.
+        """
+        self._factory = factory
 
 
     def buildProtocol(self, addr):
         """
         Builds a bridge and associates it with an AMP protocol instance.
         """
-        ampProto = self._ampFactory.buildProtocol(addr)
-        return JSONAMPDialectReceiver(ampProto)
+        proto = self._factory.buildProtocol(addr)
+        return JSONAMPDialectReceiver(proto)
