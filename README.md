@@ -9,7 +9,7 @@ implementation of [AMP](http://amp-protocol.net/).
 
 Features:
 
-- A JSON AMP dialect, intended for browsers.
+- Added `txampext.jsondialect`, a JSON AMP dialect, intended for browsers.
 
 ## 0.0.6
 
