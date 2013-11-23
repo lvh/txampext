@@ -71,10 +71,10 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
                 request[key] = self._remote
                 continue
 
-            transformer = _ampTypeMap.get(ampClass)
-            if transformer is not None:
+            decoder = _decoders.get(ampClass)
+            if decoder is not None:
                 value = request.get(key)
-                request[key] = transformer(value)
+                request[key] = decoder(value, self)
 
 
     def _runResponder(self, responder, request, command, identifier):
@@ -125,9 +125,23 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
 
 
 
-_ampTypeMap = {
-    amp.String: lambda u: u.encode("utf-8")
-}
+_decoders = {}
+def _addDecoder(ampClass):
+    """
+    Registers a method as a decoder for a given AMP argument class.
+    """
+    def decorator(method):
+        _decoders[ampClass] = method
+        return method
+    return decorator
+
+
+@_addDecoder(amp.String)
+def _unicodeToString(value, _receiver):
+    """
+    Encodes the unicode string as UTF-8.
+    """
+    return value.encode("utf-8")
 
 
 
