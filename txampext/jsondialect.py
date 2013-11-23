@@ -29,9 +29,11 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
         request = loads(string)
 
         identifier = request.pop("_ask")
+
+        commandName = request.pop("_command")
         # DISGUSTING IMPLEMENTATION DETAIL EXPLOITING HACK
-        src = self._amp.boxReceiver.locator
-        responder = src.locateResponder(request.pop("_command"))
+        locator = self._amp.boxReceiver.locator
+        responder = locator.locateResponder(commandName)
         responderFunction = responder.func_closure[1].cell_contents
         command = responder.func_closure[2].cell_contents
 
@@ -50,14 +52,14 @@ class JSONAMPDialectReceiver(basic.NetstringReceiver):
 
         def _wrapAnswer(response):
             """
-            Wrap the answer and return the response.
+            Return the response with the _answer key added.
             """
             response["_answer"] = identifier
             return response
 
         def _report(failure):
             """
-            Encode the error.
+            Produce an AMP error dict.
             """
             key = failure.trap(*command.allErrors)
             response = {
