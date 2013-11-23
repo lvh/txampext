@@ -20,9 +20,37 @@ Multiplexed connections use the following simple AMP commands:
 
  .. autoclass:: Disconnect
 
-Obviously, the AMP peer playing the role of the server in a stream
-connection must implement all three. The obvious way to do that is to
-use the :py:class:`MultiplexingCommandLocator` command locator.
+A connection is started as follows:
+
+.. ditaa::
+
+     Server side (AMP peer)                        Client side (AMP peer)
+
+    +-----------+                                   +------------------+
+    | Protocol  |  (1) AMP Connect request          | AMP client       |
+    | factory   |<----------------------------------+ c1FF             |
+    | cPNK      |                                   |                  |
+    |           +---------------------------------->|                  |
+    |           |  (2) AMP Connect response         |                  |
+    +-+---------+                                   +------------------+
+      |
+      |
+      | (2) Factory builds protocol with unique id & transport
+      |
+      V
+    +----------+
+    | Protocol |
+    | cGRE     |
+    |          |
+    |          |+-----------+
+    |          || Transport |
+    |          || cYEL      |
+    +----------++-----------+
+
+
+The AMP peer playing the role of the server in a stream connection
+must implement all three. The obvious way to do that is to use the
+:py:class:`MultiplexingCommandLocator` command locator.
 
 The AMP peer playing the role of a client does not have to implement
 the :py:class:`Connect` command, of course. However, since the server
@@ -34,4 +62,15 @@ coming from the server.
 Local proxying
 ==============
 
-TODO: document (see docs/examples/)
+.. ditaa::
+
+     Server side (AMP peer)                        Client side (AMP peer)
+
+    +----------+                                +-----------++----------+
+    | Protocol |     AMP Transmit request       | Transport || Protocol |
+    | cGRE     |<-------------------------------+ cYEL      || cGRE     |
+    |          |                                +-----------+|          |
+    |          |+-----------+                                |          |
+    |          || Transport +------------------------------->|          |
+    |          || cYEL      |     AMP Transmit request       |          |
+    +----------++-----------+                                +----------+
