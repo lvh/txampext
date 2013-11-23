@@ -5,6 +5,12 @@ implementation of [AMP](http://amp-protocol.net/).
 
 # What's new
 
+## 0.0.7 (WIP)
+
+Features:
+
+- A JSON AMP dialect, intended for browsers.
+
 ## 0.0.6
 
 Bugfixes:
