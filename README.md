@@ -10,6 +10,8 @@ implementation of [AMP](http://amp-protocol.net/).
 Features:
 
 - Added `txampext.jsondialect`, a JSON AMP dialect, intended for browsers.
+- Added `txampext.respondertests`, tests for verifying that responder
+  locators actually have registered responders for given commands.
 
 ## 0.0.6
 
