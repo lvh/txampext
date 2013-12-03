@@ -5,7 +5,7 @@ implementation of [AMP](http://amp-protocol.net/).
 
 # What's new
 
-## 0.0.7 (WIP)
+## 0.0.7
 
 Features:
 
