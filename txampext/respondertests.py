@@ -36,4 +36,6 @@ class ResponderTestMixin(object):
             template = "The locator did not have a {0} responder."
             raise FailTest(template.format(self.command))
 
-        self.assertIdentical(responder.im_func, self.responder.im_func)
+        # this is where it gets gross
+        responderFunction = responder.func_closure[0].cell_contents.im_func
+        self.assertIdentical(responderFunction, self.responder.im_func)
