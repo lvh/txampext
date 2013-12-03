@@ -1,2 +1,6 @@
 twisted
 coverage
+
+# Fancy debugging
+pudb
+ipython
