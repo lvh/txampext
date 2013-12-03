@@ -62,10 +62,10 @@ class ResponderTestMixinTests(SynchronousTestCase):
 
 
     def test_hasResponder(self):
-        """When the locator has the appropriate responder, the test succeeds.
+        """When the locator has a responder for the command, the test
+        succeeds.
 
         """
         self.mixin.locator = self.locator
         self.mixin.command = Sum
-        self.mixin.responder = Locator.add
         self.mixin.test_locateResponder()

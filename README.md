@@ -5,6 +5,10 @@ implementation of [AMP](http://amp-protocol.net/).
 
 # What's new
 
+## 0.0.9
+
+`respondertests` no longer relies on gross implementation details.
+
 ## 0.0.8
 
 Bugfix release for 0.0.7; due to the wrong thing being tagged, the new
