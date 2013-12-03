@@ -13,6 +13,9 @@ Features:
 - Added `txampext.respondertests`, tests for verifying that responder
   locators actually have registered responders for given commands.
 
+The version is now available as both `txampext.__version__` as well as
+`txampext.version`.
+
 ## 0.0.6
 
 Bugfixes:
