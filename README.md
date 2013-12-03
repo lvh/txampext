@@ -5,6 +5,11 @@ implementation of [AMP](http://amp-protocol.net/).
 
 # What's new
 
+## 0.0.8
+
+Bugfix release for 0.0.7; due to the wrong thing being tagged, the new
+responder tests were actually fatally broken. Everyone should update.
+
 ## 0.0.7
 
 Features:
