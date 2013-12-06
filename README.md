@@ -5,6 +5,13 @@ implementation of [AMP](http://amp-protocol.net/).
 
 # What's new
 
+## 0.0.10 (WIP)
+
+Improvements:
+
+- `respondertests`: The error message raised when a locator does not
+  have the appropriate responder is now better.
+
 ## 0.0.9
 
 `respondertests` no longer relies on gross implementation details.

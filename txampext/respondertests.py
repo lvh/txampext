@@ -27,5 +27,5 @@ class ResponderTestMixin(object):
 
         responder = self.locator.locateResponder(self.command.__name__)
         if responder is None:
-            template = "The locator did not have a {0} responder."
-            raise FailTest(template.format(self.command))
+            template = "{0} did not have a {1} responder."
+            raise FailTest(template.format(self.locator, self.command))
