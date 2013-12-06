@@ -36,6 +36,7 @@ class Divide(amp.Command):
     ]
     errors = {ZeroDivisionError: "DIVIDE_BY_ZERO"}
     fatalErrors = {MemoryError: "MEMORY_ERROR"}
+    requiresAnswer = False
 
 
 
@@ -50,6 +51,7 @@ class CommandTestMixinTests(CommandTestMixin, SynchronousTestCase):
     responseStrings = stringifyValues(responseObjects)
     errors = {ZeroDivisionError: "DIVIDE_BY_ZERO"}
     fatalErrors = {MemoryError: "MEMORY_ERROR"}
+    requiresAnswer = False
 
     def setUp(self):
         self.protocol = object()

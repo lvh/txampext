@@ -93,6 +93,12 @@ class CommandTestMixin(object):
     """
 
 
+    requiresAnswer = True
+    """Whether or not this command requires an answer.
+
+    """
+
+
     @_requiredAttributes("command", "responseObjects", "responseStrings")
     def test_makeResponse(self):
         """
@@ -151,6 +157,13 @@ class CommandTestMixin(object):
         for cls, expectedDescription in self.errors.iteritems():
             description = self.command.errors.get(cls)
             self.assertEqual(description, expectedDescription)
+
+
+    def test_requiresAnswer(self):
+        """
+        Tests if the command requires an answer.
+        """
+        self.assertEqual(self.requiresAnswer, self.command.requiresAnswer)
 
 
 

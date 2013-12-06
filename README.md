@@ -11,6 +11,7 @@ Improvements:
 
 - `respondertests`: The error message raised when a locator does not
   have the appropriate responder is now better.
+- `commandtests`: Added support for ``requiresAnswer``
 
 ## 0.0.9
 
