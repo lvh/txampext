@@ -1,11 +1,18 @@
 """
 Multiplexed stream connections over AMP.
 """
-from twisted.internet import interfaces
+from twisted.internet import interfaces, protocol
 from twisted.protocols import amp
+from twisted.python import log
 from txampext import errors
 from uuid import uuid4
 from zope import interface
+
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 
 
@@ -238,3 +245,148 @@ class MultiplexedTransport(object):
 
         """
         return self.remote.transport.getHost()
+
+
+
+class ProxyingProtocol(protocol.Protocol):
+    """Proxies local connection over AMP.
+
+    """
+    def __init__(self):
+        self.connection = None
+        self._buffer = StringIO()
+
+
+    def _callRemote(self, command, **kwargs):
+        """Shorthand for ``callRemote``.
+
+        This uses the factory's connection to the AMP peer.
+
+        """
+        return self.factory.remote.callRemote(command, **kwargs)
+
+
+    def connectionMade(self):
+        """Create a multiplexed stream connection.
+
+        Connect to the AMP server's multiplexed factory using the
+        identifier (defined by this class' factory). When done, stores
+        the connection reference and causes buffered data to be sent.
+
+        """
+        log.msg("Creating multiplexed AMP connection...")
+        remoteFactoryIdentifier = self.factory.remoteFactoryIdentifier
+        d = self._callRemote(Connect, factory=remoteFactoryIdentifier)
+        d.addCallback(self._multiplexedConnectionMade)
+
+
+    def _multiplexedConnectionMade(self, response):
+        """Stores a reference to the connection, registers this protocol on
+        the factory as one related to a multiplexed AMP connection,
+        and sends currently buffered data. Gets rid of the buffer
+        afterwards.
+
+        """
+        self.connection = conn = response["connection"]
+        self.factory.protocols[conn] = self
+
+        log.msg("Multiplexed AMP connection ({!r}) made!".format(conn))
+
+        data, self._buffer = self._buffer.getvalue(), None
+        if data:
+            log.msg("Sending {} bytes of buffered data...".format(len(data)))
+            self._sendData(data)
+        else:
+            log.msg("No buffered data to send!")
+
+
+    def dataReceived(self, data):
+        """Received some data from the local side.
+
+        If we have set up the multiplexed connection, sends the data
+        over the multiplexed connection. Otherwise, buffers.
+
+        """
+        log.msg("{} bytes of data received locally".format(len(data)))
+        if self.connection is None:
+            # we haven't finished connecting yet
+            log.msg("Connection not made yet, buffering...")
+            self._buffer.write(data)
+        else:
+            log.msg("Sending data...")
+            self._sendData(data)
+
+
+    def _sendData(self, data):
+        """Actually sends data over the wire.
+
+        """
+        d = self._callRemote(Transmit, connection=self.connection, data=data)
+        d.addErrback(log.err)
+
+
+    def connectionLost(self, reason):
+        """If we already have an AMP connection registered on the factory,
+        get rid of it.
+
+        """
+        if self.connection is not None:
+            del self.factory.protocols[self.connection]
+
+
+
+class ProxyingFactory(protocol.ServerFactory):
+    """A local listening factory that will proxy bytes to a remote server
+    using an AMP multiplexed connection.
+
+    """
+    protocol = ProxyingProtocol
+
+    def __init__(self, remote, remoteFactoryIdentifier):
+        self.remote = remote
+        remote.localFactory = self
+        self.remoteFactoryIdentifier = remoteFactoryIdentifier
+        self.protocols = {}
+
+
+
+class ProxyingAMPLocator(amp.CommandLocator):
+    """The AMP command locator that receives commands related to a
+    multiplexed connection, such as incoming data or a disconnect
+    request, and replays it on the local counterpart.
+
+    """
+    localFactory = None
+
+    def getLocalProtocol(self, connectionIdentifier):
+        """Attempts to get a local protocol by connection identifier.
+
+        """
+        if self.localFactory is None:
+            raise NoSuchConnection()
+
+        try:
+            return self.localFactory.protocols[connectionIdentifier]
+        except KeyError:
+            raise NoSuchConnection()
+
+
+    @Transmit.responder
+    def remoteDataReceived(self, connection, data):
+        """Some data was received from the remote end. Find the matching
+        protocol and replay it.
+
+        """
+        proto = self.getLocalProtocol(connection)
+        proto.transport.write(data)
+        return {}
+
+
+    @Disconnect.responder
+    def disconnect(self, connection):
+        """The other side has asked us to disconnect.
+
+        """
+        proto = self.getLocalProtocol(connection)
+        proto.transport.loseConnection()
+        return {}

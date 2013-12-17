@@ -5,6 +5,7 @@ from twisted.python import log
 from twisted.web import resource, server
 from txampext.multiplexing import MultiplexingCommandLocator
 
+
 class HelloResource(resource.Resource):
     """
     A resource that says hello.
