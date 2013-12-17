@@ -112,11 +112,16 @@ class ProxyingFactory(protocol.ServerFactory):
 
 
 class ProxyingAMPProtocol(amp.AMP):
+    """The AMP instance that receives commands related to a multiplexed
+    connection, such as incoming data or a disconnect request, and
+    replays it on the local counterpart.
+
+    """
     localFactory = None
 
     def getLocalProtocol(self, connectionIdentifier):
-        """
-        Attempts to get a local protocol by connection identifier.
+        """Attempts to get a local protocol by connection identifier.
+
         """
         if self.localFactory is None:
             raise multiplexing.NoSuchConnection()
@@ -140,8 +145,8 @@ class ProxyingAMPProtocol(amp.AMP):
 
     @multiplexing.Disconnect.responder
     def disconnect(self, connection):
-        """
-        The other side has asked us to disconnect.
+        """The other side has asked us to disconnect.
+
         """
         proto = self.getLocalProtocol(connection)
         proto.transport.loseConnection()
