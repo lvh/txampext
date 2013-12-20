@@ -5,6 +5,13 @@ implementation of [AMP](http://amp-protocol.net/).
 
 # What's new
 
+## 0.0.11
+
+Mutlifactory support for proxying multiplexed connections. Previously
+you could only do that with one factory; now you can do it with an
+arbitrary number. (The example still only proxies one thing; but the
+obvious way to make it proxy more than one thing now works.)
+
 ## 0.0.10
 
 Improvements:
