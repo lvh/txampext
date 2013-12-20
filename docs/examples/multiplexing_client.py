@@ -12,6 +12,10 @@ class AMP(amp.AMP, multiplexing.ProxyingAMPLocator):
     """
     The AMP protocol, which includes the ProxyingAMPLocator.
     """
+    def __init__(self):
+        amp.AMP.__init__(self)
+        multiplexing.ProxyingAMPLocator.__init__(self)
+
 
 
 def main():

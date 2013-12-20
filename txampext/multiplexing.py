@@ -344,7 +344,7 @@ class ProxyingFactory(protocol.ServerFactory):
 
     def __init__(self, remote, remoteFactoryIdentifier):
         self.remote = remote
-        remote.localFactory = self
+        remote.localFactories.add(self)
         self.remoteFactoryIdentifier = remoteFactoryIdentifier
         self.protocols = {}
 
@@ -356,19 +356,21 @@ class ProxyingAMPLocator(amp.CommandLocator):
     request, and replays it on the local counterpart.
 
     """
-    localFactory = None
+    def __init__(self):
+        self.localFactories = set()
+
 
     def getLocalProtocol(self, connectionIdentifier):
         """Attempts to get a local protocol by connection identifier.
 
         """
-        if self.localFactory is None:
-            raise NoSuchConnection()
+        for factory in self.localFactories:
+            try:
+                return factory.protocols[connectionIdentifier]
+            except KeyError:
+                continue
 
-        try:
-            return self.localFactory.protocols[connectionIdentifier]
-        except KeyError:
-            raise NoSuchConnection()
+        raise NoSuchConnection()
 
 
     @Transmit.responder
